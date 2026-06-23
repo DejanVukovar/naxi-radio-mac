@@ -1,0 +1,28 @@
+# Build output
+.build/
+*.o
+*.d
+
+# Compiled app and DMG
+*.app
+*.dmg
+*.ipa
+
+# Icon set (generisano iz make_icon.swift)
+AppIcon.iconset/
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+.swiftpm/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Distribution staging
+dist_staging/
