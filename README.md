@@ -20,8 +20,10 @@ Nativna macOS aplikacija koja pušta **Naxi Radio 96.9 MHz** direktno iz menu ba
 
 ### Preuzimanje gotove aplikacije
 
-1. Preuzmi `NaxiRadio-1.0.dmg` sa [stranice Releases](../../releases)
-2. Otvori DMG i prevuci `NaxiRadio.app` u `Applications` folder
+**[⬇ Preuzmi NaxiRadio-1.0.dmg](https://github.com/DejanVukovar/naxi-radio-mac/releases/download/v1.0.0/NaxiRadio-1.0.dmg)**
+
+1. Otvori preuzeti `NaxiRadio-1.0.dmg`
+2. Prevuci `NaxiRadio.app` u `Applications` folder
 3. **Desni klik → Open** (samo prvi put — macOS Gatekeeper zahteva ovo za nepotpisane aplikacije)
 4. Aplikacija se pojavljuje u menu baru (ikona radio talasa)
 
