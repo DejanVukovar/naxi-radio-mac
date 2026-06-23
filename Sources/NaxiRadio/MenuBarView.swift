@@ -123,7 +123,7 @@ struct MenuBarView: View {
     // MARK: - Startup Toggle
 
     private var startupRow: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 4) {
             Toggle(isOn: Binding(
                 get: { state.launchAtLogin },
                 set: { _ in state.toggleLaunchAtLogin() }
