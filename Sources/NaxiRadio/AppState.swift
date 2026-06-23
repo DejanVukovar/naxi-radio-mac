@@ -2,7 +2,6 @@ import AVFoundation
 import Cocoa
 import Combine
 import Foundation
-import ServiceManagement
 
 class AppState: ObservableObject {
     @Published var isPlaying = false
@@ -104,35 +103,68 @@ class AppState: ObservableObject {
         return String(html[s.upperBound..<e.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    // MARK: - Login Item (Start at Login)
+    // MARK: - Login Item (LaunchAgent plist — radi bez potpisivanja)
+
+    private var launchAgentURL: URL {
+        let bundleID = Bundle.main.bundleIdentifier ?? "rs.naxi.menubar"
+        return FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/LaunchAgents/\(bundleID).plist")
+    }
 
     func refreshLoginItemStatus() {
-        let status = SMAppService.mainApp.status
+        let enabled = FileManager.default.fileExists(atPath: launchAgentURL.path)
         DispatchQueue.main.async {
-            self.launchAtLogin = (status == .enabled)
-            self.loginItemStatus = self.describeStatus(status)
+            self.launchAtLogin = enabled
+            self.loginItemStatus = ""
         }
     }
 
     func toggleLaunchAtLogin() {
-        do {
-            if launchAtLogin {
-                try SMAppService.mainApp.unregister()
-            } else {
-                try SMAppService.mainApp.register()
-            }
-        } catch {
-            loginItemStatus = "Greška: \(error.localizedDescription)"
+        if launchAtLogin {
+            disableLaunchAtLogin()
+        } else {
+            enableLaunchAtLogin()
         }
         refreshLoginItemStatus()
     }
 
-    private func describeStatus(_ s: SMAppService.Status) -> String {
-        switch s {
-        case .enabled:           return "Omogućeno"
-        case .notRegistered:     return ""
-        case .requiresApproval:  return "Čeka odobrenje u Podešavanjima"
-        default:                 return ""
+    private func enableLaunchAtLogin() {
+        let appPath = Bundle.main.bundlePath
+        let bundleID = Bundle.main.bundleIdentifier ?? "rs.naxi.menubar"
+
+        let plist: [String: Any] = [
+            "Label": bundleID,
+            "ProgramArguments": ["/usr/bin/open", "-a", appPath],
+            "RunAtLoad": true,
+            "KeepAlive": false
+        ]
+
+        do {
+            let dir = launchAgentURL.deletingLastPathComponent()
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+            try data.write(to: launchAgentURL)
+
+            let task = Process()
+            task.launchPath = "/bin/launchctl"
+            task.arguments = ["load", "-w", launchAgentURL.path]
+            try task.run()
+            task.waitUntilExit()
+        } catch {
+            DispatchQueue.main.async { self.loginItemStatus = "Greška: \(error.localizedDescription)" }
+        }
+    }
+
+    private func disableLaunchAtLogin() {
+        do {
+            let task = Process()
+            task.launchPath = "/bin/launchctl"
+            task.arguments = ["unload", launchAgentURL.path]
+            try task.run()
+            task.waitUntilExit()
+            try? FileManager.default.removeItem(at: launchAgentURL)
+        } catch {
+            DispatchQueue.main.async { self.loginItemStatus = "Greška: \(error.localizedDescription)" }
         }
     }
 
